@@ -7,7 +7,8 @@ module JIRA
 
     DEFAULT_OPTIONS = {
       :username           => '',
-      :password           => ''
+      :password           => '',
+      :authorization      => '',
     }
 
     attr_reader :options
@@ -26,9 +27,10 @@ module JIRA
 
     def make_request(http_method, path, body='', headers={})
       request = Net::HTTP.const_get(http_method.to_s.capitalize).new(path, headers)
+      request['Authorization'] = @options[:authorization] unless @options[:authorization].blank?
       request.body = body unless body.nil?
       add_cookies(request) if options[:use_cookies]
-      request.basic_auth(@options[:username], @options[:password]) if @options[:username] && @options[:password]
+      request.basic_auth(@options[:username], @options[:password]) unless @options[:username].blank? && @options[:password].blank?
       response = basic_auth_http_conn.request(request)
       @authenticated = response.is_a? Net::HTTPOK
       store_cookies(response) if options[:use_cookies]
